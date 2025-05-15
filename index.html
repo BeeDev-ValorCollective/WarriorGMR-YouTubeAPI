@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latest YouTube Video</title>
+  <style>
+    /* Basic styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f6f0;
+      color: #333;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #latest-video {
+      margin-top: 20px;
+    }
+
+    iframe {
+      border: 2px solid #f3db17;
+      border-radius: 8px;
+      margin-top: 20px;
+      max-width: 640px;
+      width: 100%;
+      height: 360px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #f3db17;
+    }
+
+    .video-title {
+      font-size: 24px;
+      margin-top: 10px;
+      color: #333;
+    }
+
+    .video-link {
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .video-link a {
+      text-decoration: none;
+      color: #f3db17;
+    }
+
+    /* Responsive styling */
+    @media (max-width: 768px) {
+      iframe {
+        height: 315px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Latest YouTube Video</h1>
+  <div id="latest-video"></div>
+
+  <script>
+    const API_KEY = ''; // Your YouTube API key
+    const PLAYLIST_ID = 'PLsE2GrM_egkIBeVfwMXgMcSCE7xakQk-u'; // Your playlist ID
+    const MAX_RESULTS = 5; // Max limit per request
+    const API_URL = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${PLAYLIST_ID}&key=${API_KEY}&maxResults=${MAX_RESULTS}`;
+  
+    async function fetchAllVideos() {
+      let nextPageToken = '';
+      let allVideos = [];
+  
+      // Keep fetching while nextPageToken exists
+      while (nextPageToken !== null) {
+        try {
+          const response = await fetch(`${API_URL}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`);
+          const data = await response.json();
+  
+          // Add current page videos to allVideos
+          if (data.items && data.items.length > 0) {
+            allVideos.push(...data.items);
+          }
+  
+          // Get nextPageToken for the next page
+          nextPageToken = data.nextPageToken || null;
+  
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          document.getElementById('latest-video').innerHTML = '<p>There was an error fetching the videos.</p>';
+          return;
+        }
+      }
+  
+      console.log('All videos:', allVideos);
+      displayAllVideos(allVideos);
+    }
+  
+    function displayAllVideos(videos) {
+      const container = document.getElementById('latest-video');
+      container.innerHTML = ''; // Clear previous content
+  
+      if (videos.length === 0) {
+        container.innerHTML = '<p>No videos found in the playlist.</p>';
+        return;
+      }
+  
+      // Loop through and display all videos
+      videos.forEach((video) => {
+        const videoId = video.snippet.resourceId.videoId;
+        const title = video.snippet.title;
+  
+        const videoElement = document.createElement('div');
+        videoElement.classList.add('video-item');
+        videoElement.style.marginBottom = '20px';
+  
+        // Create the embedded player or thumbnail
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}`;
+        iframe.frameBorder = '0';
+        iframe.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
+        iframe.allowFullscreen = true;
+        iframe.style.marginTop = '10px';
+        iframe.style.maxWidth = '640px';
+        iframe.style.width = '100%';
+        iframe.style.height = '360px';
+  
+        videoElement.innerHTML = `
+          <div class="video-title">${title}</div>
+        `;
+        videoElement.appendChild(iframe);
+  
+        // Add the link to the video
+        const videoLink = document.createElement('div');
+        videoLink.classList.add('video-link');
+        const link = document.createElement('a');
+        link.href = `https://www.youtube.com/watch?v=${videoId}`;
+        link.target = '_blank';
+        link.innerText = 'Watch on YouTube';
+        videoLink.appendChild(link);
+        videoElement.appendChild(videoLink);
+  
+        container.appendChild(videoElement);
+      });
+    }
+  
+    // Call the function to fetch and display all videos
+    fetchAllVideos();
+  </script>
+  
+</body>
+</html>
