@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <style>
+      /* Basic styling */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f6f0;
+        color: #333;
+        padding: 20px;
+        text-align: center;
+      }
+
+      #latest-video {
+        margin-top: 20px;
+      }
+
+      iframe {
+        border: 2px solid #f3db17;
+        border-radius: 8px;
+        margin-top: 20px;
+        max-width: 640px;
+        width: 100%;
+        height: 560px;
+      }
+
+      .video-title {
+        font-size: 24px;
+        margin-top: 10px;
+        color: #333;
+      }
+
+      .video-link {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+
+      .video-link a {
+        text-decoration: none;
+        color: #f3db17;
+      }
+
+      /* Responsive styling */
+      @media (max-width: 768px) {
+        iframe {
+          height: 315px;
+        }
+      }
+    </style>
+    <div id="latest-video"></div>
+
+    <script>
+      const API_KEY = ""; // Your YouTube API key
+      const PLAYLIST_ID = "PLsE2GrM_egkIBeVfwMXgMcSCE7xakQk-u"; // Your playlist ID
+      const API_URL = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${PLAYLIST_ID}&key=${API_KEY}&maxResults=50`; // Increase maxResults to get more videos
+
+      async function fetchLatestVideo() {
+        try {
+          const response = await fetch(API_URL);
+          const data = await response.json();
+
+          if (data.items && data.items.length > 0) {
+            // Sort videos by published date (in descending order) to get the latest one
+            data.items.sort(
+              (a, b) =>
+                new Date(b.snippet.publishedAt) -
+                new Date(a.snippet.publishedAt)
+            );
+
+            // Display the most recent video
+            displayVideo(data.items[0]);
+          } else {
+            document.getElementById("latest-video").innerHTML =
+              "<p>No videos found in the playlist.</p>";
+          }
+          console.log("response", response, "data", data);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          document.getElementById("latest-video").innerHTML =
+            "<p>There was an error fetching the video.</p>";
+        }
+      }
+
+      function displayVideo(video) {
+        const container = document.getElementById("latest-video");
+        container.innerHTML = ""; // Clear existing content
+
+        const videoId = video.snippet.resourceId.videoId;
+        const title = video.snippet.title;
+
+        const videoElement = document.createElement("div");
+        videoElement.classList.add("video-item");
+
+        // Create the embedded player
+        const iframe = document.createElement("iframe");
+        iframe.src = `https://www.youtube.com/embed/${videoId}`;
+        iframe.frameBorder = "0";
+        iframe.allow =
+          "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
+        iframe.allowFullscreen = true;
+
+        videoElement.innerHTML = `
+            <div class="video-title">${title}</div>
+          `;
+
+        videoElement.appendChild(iframe);
+
+        // Add the link to the YouTube video
+        const videoLink = document.createElement("div");
+        videoLink.classList.add("video-link");
+        const link = document.createElement("a");
+        link.href = `https://www.youtube.com/watch?v=${videoId}`;
+        link.target = "_blank";
+        videoLink.appendChild(link);
+
+        videoElement.appendChild(videoLink);
+        container.appendChild(videoElement);
+      }
+
+      // Call the function to fetch and display the latest video
+      fetchLatestVideo();
+    </script>
+  </body>
+</html>
