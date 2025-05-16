@@ -20,6 +20,12 @@
         margin-top: 20px;
       }
 
+      #other-videos {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
       iframe {
         border: 2px solid #f3db17;
         border-radius: 8px;
@@ -53,9 +59,10 @@
       }
     </style>
     <div id="latest-video"></div>
+    <div id="other-videos"></div>
 
     <script>
-      const API_KEY = ""; // Your YouTube API key
+      const API_KEY = "AIzaSyBV83UZ8v6cLHDKySTAya2wFiAIbG4DaVI"; // Your YouTube API key
       const PLAYLIST_ID = "PLsE2GrM_egkIBeVfwMXgMcSCE7xakQk-u"; // Your playlist ID
       const API_URL = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${PLAYLIST_ID}&key=${API_KEY}&maxResults=50`; // Increase maxResults to get more videos
 
@@ -73,7 +80,18 @@
             );
 
             // Display the most recent video
-            displayVideo(data.items[0]);
+              for (i=0; i < data.items.length; i++) {
+
+                if (i == 0) {
+
+                  displayLatestVideo(data.items[i]);
+                } else {
+
+                  displayOtherVideos(data.items[i])
+                }
+
+
+              }
           } else {
             document.getElementById("latest-video").innerHTML =
               "<p>No videos found in the playlist.</p>";
@@ -86,7 +104,7 @@
         }
       }
 
-      function displayVideo(video) {
+      function displayLatestVideo(video) {
         const container = document.getElementById("latest-video");
         container.innerHTML = ""; // Clear existing content
 
@@ -121,6 +139,22 @@
         videoElement.appendChild(videoLink);
         container.appendChild(videoElement);
       }
+
+      function displayOtherVideos(video) {
+        const CONTAINER = document.getElementById('other-videos')
+
+        // Create link to video
+        const videoLink = document.createElement('a');
+        const videoId = video.snippet.resourceId.videoId;
+        const title = video.snippet.title
+        videoLink.href=`https://www.youtube.com/watch?v=${videoId}`
+        videoLink.innerText = title;
+        videoLink.classList.add('video-link')
+        CONTAINER.appendChild(videoLink); 
+
+      }
+
+     
 
       // Call the function to fetch and display the latest video
       fetchLatestVideo();
