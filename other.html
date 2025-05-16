@@ -72,10 +72,11 @@
       const PLAYLIST_ID = "PLsE2GrM_egkIBeVfwMXgMcSCE7xakQk-u"; // Your playlist ID
       const API_URL = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${PLAYLIST_ID}&key=${API_KEY}&maxResults=50`; // Increase maxResults to get more videos
       const RESULTS_PER_PAGE = 10
+      let loaded = false;
       let pages = 0;
       let page = 0;
-      let pageStart = page*RESULTS_PER_PAGE+1
-      let pageEnd = page == 0 ? RESULTS_PER_PAGE+2 : (page+1)*RESULTS_PER_PAGE+2
+      let pageStart = 0;
+      let pageEnd = 0;
       // console.log(pageStart);
       // console.log(pageEnd);
 
@@ -83,6 +84,7 @@
       async function fetchLatestVideo() {
 
         clearPage();
+        setPages();
         try {
           const response = await fetch(API_URL);
           const data = await response.json();
@@ -99,14 +101,18 @@
               for (i=0; i < data.items.length; i++) {
 
                 if (i == 0) {
-
-                  displayLatestVideo(data.items[i]);
+                  if (!loaded) {
+                    displayLatestVideo(data.items[i]);
+                  }
                 } else {
 
                   if (i > pageStart && i < pageEnd) {
                       try {
 
                         displayOtherVideos(data.items[i])
+                        console.log({page})
+                        console.log(pageStart);
+                        console.log(pageEnd);
                       } catch(error) {
                         console.log("No more results");
                         break;
@@ -168,26 +174,30 @@
         videoLink.innerText = title;
         videoLink.classList.add('video-link')
         CONTAINER.appendChild(videoLink); 
+        loaded = true
 
       }
 
 
       function nextPage() {
         page++;
-        console.log({page})
         fetchLatestVideo();
       }
 
       function previousPage() {
         if (page != 0) {
           page--;
-          console.log({page})
           fetchLatestVideo();
         }
       }
 
       function clearPage() {
         document.getElementById("other-videos").innerHTML = "";
+      }
+
+      function setPages() {
+        pageStart = page*RESULTS_PER_PAGE+1;
+        pageEnd = (page+1)*RESULTS_PER_PAGE+2;
       }
 
      
